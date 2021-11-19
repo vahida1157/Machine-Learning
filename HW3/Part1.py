@@ -33,7 +33,7 @@ print(f'The accuracy is: {clf_best.score(X_test, Y_test) * 100:.1f}%')
 print(classification_report(Y_test, pred, target_names=face_data.target_names))
 
 # True : good. False : error -- n_components : 100 -> 90.5% , 10 -> 46.3
-pca = PCA(n_components=10, whiten=True, random_state=42)
+pca = PCA(n_components=169, whiten=True, random_state=42)
 
 svc = SVC(class_weight='balanced', kernel='rbf', random_state=42)
 

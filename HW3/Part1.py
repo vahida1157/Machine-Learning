@@ -30,23 +30,23 @@ pred = clf_best.predict(X_test)
 
 print(f'The accuracy is: {clf_best.score(X_test, Y_test) * 100:.1f}%')
 
-print(classification_report(Y_test, pred, target_names=face_data.target_names))
-
-# True : good. False : error -- n_components : 100 -> 90.5% , 10 -> 46.3
-pca = PCA(n_components=169, whiten=True, random_state=42)
-
-svc = SVC(class_weight='balanced', kernel='rbf', random_state=42)
-
-model = Pipeline([('pca', pca), ('svc', svc)])
-
-parameters_pipeline = {'svc__C': [1, 3, 10],
-                       'svc__gamma': [0.001, 0.005]}  # {'svc__C': 1, 'svc__gamma': 0.005} -> 90.2%
-parameters_pipeline1 = {'svc__C': [1, 2, 3, 10],
-                        'svc__gamma': [0.001, 0.005, 0.006, 0.004]}  # {'svc__C': 3, 'svc__gamma': 0.006} -> 90.5%
-grid_search = GridSearchCV(model, parameters_pipeline1)
-grid_search.fit(X_train, Y_train)
-print(grid_search.best_params_)
-model_best = grid_search.best_estimator_
-print(f'The accuracy is: {model_best.score(X_test, Y_test) * 100:.1f}%')
-pred = model_best.predict(X_test)
-print(classification_report(Y_test, pred, target_names=face_data.target_names))
+# print(classification_report(Y_test, pred, target_names=face_data.target_names))
+#
+# # True : good. False : error -- n_components : 100 -> 90.5% , 10 -> 46.3
+# pca = PCA(n_components=169, whiten=True, random_state=42)
+#
+# svc = SVC(class_weight='balanced', kernel='rbf', random_state=42)
+#
+# model = Pipeline([('pca', pca), ('svc', svc)])
+#
+# parameters_pipeline = {'svc__C': [1, 3, 10],
+#                        'svc__gamma': [0.001, 0.005]}  # {'svc__C': 1, 'svc__gamma': 0.005} -> 90.2%
+# parameters_pipeline1 = {'svc__C': [1, 2, 3, 10],
+#                         'svc__gamma': [0.001, 0.005, 0.006, 0.004]}  # {'svc__C': 3, 'svc__gamma': 0.006} -> 90.5%
+# grid_search = GridSearchCV(model, parameters_pipeline1)
+# grid_search.fit(X_train, Y_train)
+# print(grid_search.best_params_)
+# model_best = grid_search.best_estimator_
+# print(f'The accuracy is: {model_best.score(X_test, Y_test) * 100:.1f}%')
+# pred = model_best.predict(X_test)
+# print(classification_report(Y_test, pred, target_names=face_data.target_names))

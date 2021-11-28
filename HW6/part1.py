@@ -1,16 +1,25 @@
+from pyspark.ml import Pipeline
+from pyspark.ml.classification import LogisticRegression
+from pyspark.ml.evaluation import BinaryClassificationEvaluator
+from pyspark.ml.feature import OneHotEncoder
+from pyspark.ml.feature import StringIndexer
+from pyspark.ml.feature import VectorAssembler
 from pyspark.sql import SparkSession
-
-spark = SparkSession.builder.appName("test").getOrCreate()
-
-df = spark.read.csv("examples/src/main/resources/people.csv", header=True, sep=';')
-df.show()
-df.count()
-df.printSchema()
-df.select("name").show()
-df.select(["name", "job"]).show()
-df.filter(df['age'] > 31).show()
-spark = SparkSession.builder.appName("CTR").getOrCreate()
 from pyspark.sql.types import StructField, StringType, StructType, IntegerType
+
+# spark = SparkSession.builder.appName("test").getOrCreate()
+#
+# df = spark.read.csv("examples/src/main/resources/people.csv", header=True, sep=';')
+# df.show()
+# df.count()
+# df.printSchema()
+# df.select("name").show()
+# df.select(["name", "job"]).show()
+# df.filter(df['age'] > 31).show()
+# spark = SparkSession.builder.appName("CTR").getOrCreate()
+
+spark = SparkSession.builder.master("local[*]").appName("PySparkShell").config("spark.driver.memory",
+                                                                               "40G").getOrCreate()
 
 schema = StructType([
     StructField("id", StringType(), True),
@@ -37,13 +46,13 @@ schema = StructType([
     StructField("C19", StringType(), True),
     StructField("C20", StringType(), True),
     StructField("C21", StringType(), True), ])
-df = spark.read.csv("file:////home/mk/all/ut/term1/AI/Project/HW6/spark-3.2.0-bin-hadoop3.2/train", schema=schema,
-                    header=True)
+df = spark.read.csv("../HW4/train.csv", schema=schema, header=True)
+
 df.printSchema()
 df.count()
 df = df.drop('id').drop('hour').drop('device_id').drop('device_ip')
 df = df.withColumnRenamed("click", "label")
-df.columns
+print(df.columns)
 
 df_train, df_test = df.randomSplit([0.7, 0.3], 42)
 df_train.cache()
@@ -53,18 +62,14 @@ df_test.count()
 categorical = df_train.columns
 categorical.remove('label')
 print(categorical)
-from pyspark.ml.feature import StringIndexer
 
 indexers = [StringIndexer(inputCol=c, outputCol="{0}_indexed".format(c)).setHandleInvalid("keep") for c in categorical]
-from pyspark.ml.feature import OneHotEncoder
 
 encoder = OneHotEncoder(inputCols=[indexer.getOutputCol() for indexer in indexers],
                         outputCols=["{0}_encoded".format(indexer.getOutputCol()) for indexer in indexers])
-from pyspark.ml.feature import VectorAssembler
 
 assembler = VectorAssembler(inputCols=encoder.getOutputCols(), outputCol="features")
 stages = indexers + [encoder, assembler]
-from pyspark.ml import Pipeline
 
 pipeline = Pipeline(stages=stages)
 one_hot_encoder = pipeline.fit(df_train)
@@ -80,3 +85,12 @@ df_test_encoded = df_test_encoded.select(["label", "features"])
 df_test_encoded.show()
 df_test_encoded.cache()
 df_test.unpersist()
+
+classifier = LogisticRegression(maxIter=20, regParam=0.001, elasticNetParam=0.001)
+lr_model = classifier.fit(df_train_encoded)
+predictions = lr_model.transform(df_test_encoded)
+predictions.cache()
+predictions.show()
+
+ev = BinaryClassificationEvaluator(rawPredictionCol="rawPrediction", metricName="areaUnderROC")
+print(ev.evaluate(predictions))

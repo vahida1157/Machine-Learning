@@ -206,7 +206,7 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 
 
-HW4/train.csv
+HW4/train.*
 HW6/spark-3.2.0-bin-hadoop3.2
 HW6/hadoop-3.2.2
 .idea
